@@ -10,6 +10,7 @@ import db from "../firebase.ts";
 import {
   collection,
   getDocs,
+  addDoc,
   setDoc,
   doc,
   QuerySnapshot,
@@ -33,9 +34,60 @@ export const useBeverageStore = defineStore("BeverageStore", {
   }),
 
   actions: {
-    init() {},
-    makeBeverage() {},
+    async init() {
+       // Fetch bases
+      const basesSnap = await getDocs(collection(db, "bases"));
+      this.bases = basesSnap.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as BaseBeverageType[];
 
-    showBeverage() {},
+      // Fetch syrups
+      const syrupsSnap = await getDocs(collection(db, "syrups"));
+      this.syrups = syrupsSnap.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as SyrupType[];
+
+      // Fetch creamers
+      const creamersSnap = await getDocs(collection(db, "creamers"));
+      this.creamers = creamersSnap.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as CreamerType[];
+
+      // Fetch beverages
+      const beveragesSnap = await getDocs(collection(db, "beverages"));
+      this.beverages = beveragesSnap.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as BeverageType[];
+
+      // Optionally set defaults
+      this.currentBase = this.bases[0];
+      this.currentSyrup = this.syrups[1];
+      this.currentCreamer = this.creamers[1];
+      this.currentBeverage = this.beverages[1];
+    },
+    async makeBeverage() {
+      console.log("test")
+      const newBeverage = {
+        name: this.currentName || "Custom Beverage",
+        base: this.currentBase,
+        syrup: this.currentSyrup,
+        creamer: this.currentCreamer,
+        temp: this.currentTemp,
+      };
+
+      try {
+        const docRef = await addDoc(collection(db, "beverages"), newBeverage);
+        console.log("Beverage stored with ID:", docRef.id);
+      } catch (e) {
+        console.error("Error adding beverage:", e);
+      }
+    },
+    showBeverage(drink: BeverageType) {
+      
+    },
   },
 });
