@@ -12,6 +12,7 @@ import {
   getDocs,
   addDoc,
   setDoc,
+  getDoc,
   doc,
   QuerySnapshot,
   QueryDocumentSnapshot,
@@ -69,8 +70,8 @@ export const useBeverageStore = defineStore("BeverageStore", {
       this.currentCreamer = this.creamers[1];
       this.currentBeverage = this.beverages[1];
     },
+
     async makeBeverage() {
-      console.log("test")
       const newBeverage = {
         name: this.currentName || "Custom Beverage",
         base: this.currentBase,
@@ -86,8 +87,39 @@ export const useBeverageStore = defineStore("BeverageStore", {
         console.error("Error adding beverage:", e);
       }
     },
-    showBeverage(drink: BeverageType) {
-      
+
+    async showBeverage(id: string) {
+      try {
+        const docRef = doc(db, "beverages", id);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          const beverage = { id: docSnap.id, ...docSnap.data() } as BeverageType;
+          this.currentTemp = beverage.temp;
+          this.currentBase = beverage.base;
+          this.currentCreamer = beverage.creamer;
+          this.currentSyrup = beverage.syrup
+          console.log("Selected beverage:", beverage);
+        } else {
+          console.error("No such beverage found!");
+          this.currentBeverage = null;
+        }
+      } catch (e) {
+        console.error("Error loading beverage:", e);
+      }
     },
+
+    listenToBeverages() {
+      const beveragesRef = collection(db, "beverages");
+
+      // Set up real-time listener
+      onSnapshot(beveragesRef, (snapshot) => {
+        this.beverages = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as BeverageType[];
+
+        console.log("Realtime beverages:", this.beverages);
+      });
+    }
   },
 });

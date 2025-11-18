@@ -74,7 +74,7 @@
             <input
               type="radio"
               name="drink"
-              @click="beverageStore.showBeverage(drink)"
+              @click="beverageStore.showBeverage(drink.id)"
               :id="`r${drink.id}`"
               :value="drink.name"
             />
@@ -85,10 +85,15 @@
 </template>
 
 <script setup lang="ts">
+import { onMounted } from "vue";
 import Beverage from "./components/Beverage.vue";
 import { useBeverageStore } from "./stores/beverageStore";
 const beverageStore = useBeverageStore();
 beverageStore.init();
+onMounted(() => {
+  beverageStore.init();
+  beverageStore.listenToBeverages();
+});
 </script>
 
 
